@@ -1,0 +1,59 @@
+name: Reddit
+main: com.gmail.predoklesec.NewsPlugin
+version: 0.3
+commands:
+   reddit:
+      description: Prints avalible commands.
+      usage: /<command>
+      permission: <plugin name>.reddit
+      permission-message: You dont have <permission>
+   reddit next:
+      description: Brodcasts the next news.
+      usage: /reddit <command>
+      permission: <plugin name>.next
+      permission-message: You dont have <permission>
+   reddit reload:
+      description: Reload config.yml
+      usage: /reddit <command>
+      permission: <plugin name>.reddit.reload
+      permission-message: You dont have <permission>
+   reddit get:
+      description: Get new data.
+      usage: /reddit <command>
+      permission: <plugin name>.reddit.get
+      permission-message: You dont have <permission>  
+   reddit set interval:
+      description: Set interval in minutes.
+      usage: /reddit set <command>
+      permission: <plugin name>.reddit.interval
+      permission-message: You dont have <permission>
+   reddit set topic:
+     description: Set topic of news.
+     usage: /reddit set <command>
+     permission: <plugin name>.reddit.topic
+     permission-message: You dont have <permission>
+     
+permissions:
+    reddit.*:
+        description: Gives access to all reddit commands.
+        children:
+            reddit.set.topic: true
+            reddit.set.interval: true
+            reddit.get: true
+            reddit.reload: true
+            reddit.next: true
+    reddit.next:
+        description: Allows you to show the next story,
+        default: op
+    reddit.get:
+        description: Allows you to refresh data.
+        default: op
+    reddit.set.topic:
+        description: Allows you to set topic.
+        default: op
+    reddit.set.interval:
+        description: Allows you to set interval in minutes.
+        default: op
+    reddit.reload:
+        description: Reloads the plugin.
+        default: op
