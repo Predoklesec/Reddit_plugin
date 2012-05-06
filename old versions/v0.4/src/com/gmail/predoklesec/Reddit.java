@@ -9,10 +9,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Logger;
 
@@ -37,26 +35,46 @@ public class Reddit extends JavaPlugin {
 	public void onEnable(){ 
 		log = this.getLogger();
 		getData = new Thread(gd);
-		getConfig().options().copyDefaults(true);
-		saveConfig();
 		
-		log.info("Plugin has been enabled!");
-		interval = getConfig().getInt("Interval")*60*20;
-		topic = getConfig().getString("Topic");
+		try {
+			getConfig().options().copyDefaults(true);
+			saveConfig();
 			
-		getData.run();
-		
-		if(getConfig().getString("MessageColor") != null) message_c = ChatColor.getByChar(getConfig().getString("MessageColor"));
-		if(getConfig().getString("LinkColor") != null) link_c = ChatColor.getByChar(getConfig().getString("LinkColor"));
-		if(getConfig().getString("NewsColor") != null) news_c = ChatColor.getByChar(getConfig().getString("NewsColor"));
-		
-		this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-			public void run() {
-				nextData(null);
-			}
-		}, 0L, interval);
+			log.info("Plugin has been enabled!");
+			interval = getConfig().getInt("Interval")*60*20;
+			topic = getConfig().getString("Topic");
+			
+			getData.run();
+			//data = getData();
+			
+			if(getConfig().getString("MessageColor") != null) message_c = ChatColor.getByChar(getConfig().getString("MessageColor"));
+			if(getConfig().getString("LinkColor") != null) link_c = ChatColor.getByChar(getConfig().getString("LinkColor"));
+			if(getConfig().getString("NewsColor") != null) news_c = ChatColor.getByChar(getConfig().getString("NewsColor"));
+			
+			this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+				   public void run() {
+					   if(data!=null){
+				       getServer().broadcastMessage(news_c + "[/r/" + topic + "] " + message_c + data[stevec].getNews());
+				       getServer().broadcastMessage(link_c + data[stevec].getTiny());
+				       stevec++;
+				       if(stevec == data.length){
+				    	   try {
+				    		   data = null;
+				    		   getData.start();
+				    		   //data = getData();
+				    		   stevec = 0;
+				    	   } catch (Exception e) {
+				    		   e.printStackTrace();
+				    	   }
+				       }
+					   }
+				   }
+				}, 60L, interval);
+		} catch (Exception e) {
+			log.info(e.toString());
+		}
 	}
-	
+	 
 	public void onDisable(){ 
 		log.info("Plugin has been disabled!");
 	}
@@ -74,7 +92,6 @@ public class Reddit extends JavaPlugin {
 							getConfig().set("Interval", Integer.parseInt(args[2]));
 							sender.sendMessage(INFO + ChatColor.YELLOW + "Interval set to: " + args[2] + " minutes.");
 							saveConfig();
-							onEnable();
 							return true;
 						}
 					}
@@ -83,23 +100,53 @@ public class Reddit extends JavaPlugin {
 							getConfig().set("Topic", args[2]);
 							sender.sendMessage(INFO + ChatColor.YELLOW + "Topic set to: " + args[2] + ".");
 							saveConfig();
-							topic = getConfig().getString("Topic");
-							getData.start();
 							return true;
 						}
 					}
 				}
             }
             if(args[0].equalsIgnoreCase("get")){
-            	getData.start();
+            	try {
+    				data = null;
+    				stevec = 0;
+    				//data = getData();
+    				getData.start();
+    				sender.sendMessage(INFO + ChatColor.YELLOW + "News data has been refreshed.");
+    				log.info("Data has been refreshed.");
+    			} catch (Exception e) {
+    				log.info("Data failed to refresh!");
+    				sender.sendMessage(INFO + ChatColor.YELLOW + "News data failed to refresh!");
+    			}
     			return true;
             }
             if(args[0].equalsIgnoreCase("next")){
-            	nextData(sender);
+            	if(data != null){
+            		getServer().broadcastMessage(news_c + "[/r/" + topic + "] " + message_c + data[stevec].getNews());
+            		getServer().broadcastMessage(link_c + data[stevec].getTiny());
+            		stevec++;
+            		if(stevec == data.length){
+            			try { 
+            				//data = getData();
+            				data = null;
+            				getData.start();
+            				stevec = 0;
+            			} catch (Exception e) {
+            				e.printStackTrace();
+            			}
+            		}
+            	}
+            	else{
+            		sender.sendMessage(INFO + ChatColor.YELLOW + "News data is empty!");
+            	}
             	return true;
             }
             else if(args[0].equalsIgnoreCase("reload")){
             	reloadConfig();
+            	//interval = getConfig().getInt("Interval")*60*20;
+    			//topic = getConfig().getString("Topic");
+    			//if(getConfig().getString("MessageColor") != null) message_c = ChatColor.getByChar(getConfig().getString("MessageColor"));
+    			//if(getConfig().getString("LinkColor") != null) link_c = ChatColor.getByChar(getConfig().getString("LinkColor"));
+    			//if(getConfig().getString("NewsColor") != null) news_c = ChatColor.getByChar(getConfig().getString("NewsColor"));
     			onEnable();
     			sender.sendMessage(INFO + ChatColor.YELLOW + "Reloaded!");
                 return true;
@@ -110,35 +157,19 @@ public class Reddit extends JavaPlugin {
 	
 	Runnable gd = new Runnable() {
 		public void run() {
-			data = getData();
+		    try {
+					data = getData();
+		    } catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		 }
 	};
+
 	
-	public void nextData(CommandSender sender){
-		if(data != null){
-    		getServer().broadcastMessage(news_c + "[/r/" + topic + "] " + message_c + data[stevec].getNews());
-    		getServer().broadcastMessage(link_c + data[stevec].getTiny());
-    		stevec++;
-    		if(stevec == data.length){
-    			try { 
-    				//data = getData();
-    				data = null;
-    				getData.start();
-    				stevec = 0;
-    			} catch (Exception e) {
-    				e.printStackTrace();
-    			}
-    		}
-    	}
-    	else{
-    		sender.sendMessage(INFO + ChatColor.YELLOW + "News data is empty or is reloading!");
-    	}
-	}
-	
-	public News[] getData() {
-		data = null;
-		stevec = 0;
+	public News[] getData() throws IOException, Exception {
 		try {
+			stevec = 0;
 			URL url = new URL(link+topic+"/.rss");
 			DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 			Document doc = builder.parse(url.openStream());
@@ -154,26 +185,14 @@ public class Reddit extends JavaPlugin {
 				String link = getElementValue(element,"link");
 				String description = getElementValue(element,"description");
 				tableofnews[i] = new News(title, link, description);
+				//System.out.println("Title: " + getElementValue(element,"title"));
+				//System.out.println("Link: " + getElementValue(element,"link"));
+				//System.out.println("Publish Date: " + getElementValue(element,"pubDate"));
+				//System.out.println();
 			}
-			
 			return tableofnews;
 		} catch (ParserConfigurationException e) {
 			log.info("error with parsing data!");
-			return null;
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			log.info("error with parsing data!");
-			e.printStackTrace();
-			return null;
-		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			log.info("error with parsing data!");
-			e.printStackTrace();
-			return null;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			log.info("error with parsing data!");
-			e.printStackTrace();
 			return null;
 		}
 	}
@@ -187,11 +206,13 @@ public class Reddit extends JavaPlugin {
 			}
 		}
 		catch(Exception ex) {}
-		return "";
+	return "";
 	}
 
 	protected float getFloat(String value) {
-		if(value != null && !value.equals("")) return Float.parseFloat(value);
+		if(value != null && !value.equals("")) {
+			return Float.parseFloat(value);
+		}
 		return 0;
 	}
 	
