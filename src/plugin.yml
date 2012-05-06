@@ -1,6 +1,6 @@
 name: Reddit
-main: com.gmail.predoklesec.NewsPlugin
-version: 0.3
+main: com.gmail.predoklesec.Reddit
+version: 0.4
 commands:
    reddit:
       description: Prints avalible commands.

@@ -18,7 +18,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-public class NewsPlugin extends JavaPlugin {
+public class Reddit extends JavaPlugin {
 	
 	Logger log;
 	String link = "http://www.reddit.com/r/";
@@ -26,14 +26,16 @@ public class NewsPlugin extends JavaPlugin {
 	News[] data;
 	int stevec = 0;
 	int interval = 0;
+	Thread getData;
 	String INFO = ChatColor.RED + "[Reddit] ";
 	ChatColor message_c = ChatColor.YELLOW;
 	ChatColor link_c = ChatColor.BLUE;
 	ChatColor news_c = ChatColor.RED;
-
 	
 	public void onEnable(){ 
 		log = this.getLogger();
+		getData = new Thread(gd);
+		
 		try {
 			getConfig().options().copyDefaults(true);
 			saveConfig();
@@ -42,7 +44,8 @@ public class NewsPlugin extends JavaPlugin {
 			interval = getConfig().getInt("Interval")*60*20;
 			topic = getConfig().getString("Topic");
 			
-			data = getData();
+			getData.run();
+			//data = getData();
 			
 			if(getConfig().getString("MessageColor") != null) message_c = ChatColor.getByChar(getConfig().getString("MessageColor"));
 			if(getConfig().getString("LinkColor") != null) link_c = ChatColor.getByChar(getConfig().getString("LinkColor"));
@@ -50,17 +53,21 @@ public class NewsPlugin extends JavaPlugin {
 			
 			this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
 				   public void run() {
+					   if(data!=null){
 				       getServer().broadcastMessage(news_c + "[/r/" + topic + "] " + message_c + data[stevec].getNews());
 				       getServer().broadcastMessage(link_c + data[stevec].getTiny());
 				       stevec++;
 				       if(stevec == data.length){
 				    	   try {
-				    		   data = getData();
+				    		   data = null;
+				    		   getData.start();
+				    		   //data = getData();
 				    		   stevec = 0;
 				    	   } catch (Exception e) {
 				    		   e.printStackTrace();
 				    	   }
 				       }
+					   }
 				   }
 				}, 60L, interval);
 		} catch (Exception e) {
@@ -102,7 +109,8 @@ public class NewsPlugin extends JavaPlugin {
             	try {
     				data = null;
     				stevec = 0;
-    				data = getData();
+    				//data = getData();
+    				getData.start();
     				sender.sendMessage(INFO + ChatColor.YELLOW + "News data has been refreshed.");
     				log.info("Data has been refreshed.");
     			} catch (Exception e) {
@@ -112,18 +120,25 @@ public class NewsPlugin extends JavaPlugin {
     			return true;
             }
             if(args[0].equalsIgnoreCase("next")){
-            	getServer().broadcastMessage(news_c + "[/r/" + topic + "] " + message_c + data[stevec].getNews());
-			       getServer().broadcastMessage(link_c + data[stevec].getTiny());
-            	stevec++;
-			    if(stevec == data.length){
-			    	try { 
-			    		data = getData();
-			    		stevec = 0;
-			    	} catch (Exception e) {
-			    		e.printStackTrace();
-			    	}
-			    }
-    			return true;
+            	if(data != null){
+            		getServer().broadcastMessage(news_c + "[/r/" + topic + "] " + message_c + data[stevec].getNews());
+            		getServer().broadcastMessage(link_c + data[stevec].getTiny());
+            		stevec++;
+            		if(stevec == data.length){
+            			try { 
+            				//data = getData();
+            				data = null;
+            				getData.start();
+            				stevec = 0;
+            			} catch (Exception e) {
+            				e.printStackTrace();
+            			}
+            		}
+            	}
+            	else{
+            		sender.sendMessage(INFO + ChatColor.YELLOW + "News data is empty!");
+            	}
+            	return true;
             }
             else if(args[0].equalsIgnoreCase("reload")){
             	reloadConfig();
@@ -139,6 +154,18 @@ public class NewsPlugin extends JavaPlugin {
 		}
 		return false;
 	}
+	
+	Runnable gd = new Runnable() {
+		public void run() {
+		    try {
+					data = getData();
+		    } catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		 }
+	};
+
 	
 	public News[] getData() throws IOException, Exception {
 		try {
@@ -163,7 +190,6 @@ public class NewsPlugin extends JavaPlugin {
 				//System.out.println("Publish Date: " + getElementValue(element,"pubDate"));
 				//System.out.println();
 			}
-			
 			return tableofnews;
 		} catch (ParserConfigurationException e) {
 			log.info("error with parsing data!");
