@@ -1,7 +1,7 @@
 package com.gmail.predoklesec;
 
-//import java.io.InputStream;
-//import java.net.URL;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,15 +20,9 @@ public class News {
 		this.link2 = l;
 		ArrayList links = pullLinks(d);
 		if(links.size() > 3) this.link = links.get(3).toString();
-		else this.link = links.get(1).toString();
+		else this.link = links.get(1).toString() ;
 		try {
-			//this.tinylink = getTinyUrl(this.link);
-	        String regex = 	"(?<=/comments/)\\w*";
-	   	    Pattern p = Pattern.compile(regex);
-	        Matcher m = p.matcher(l);
-	        while (m.find()) {
-	           this.tinylink = "http://redd.it/" + m.group();
-	        }
+			this.tinylink = getTinyUrl(link);
 		} catch (Exception e) {
 			this.tinylink = "error!";
 		}
@@ -63,7 +57,7 @@ public class News {
 		return links;
 	}
 	
-	/*private String getTinyUrl(String link) throws Exception{
+	private String getTinyUrl(String link) throws Exception{
 		String tiny = "http://tinyurl.com/api-create.php?url=";
 		
 		URL url = new URL(tiny+link);
@@ -82,5 +76,5 @@ public class News {
 	        }
 	    }
 	    return sb.toString();
-	}*/
+	}
 }
