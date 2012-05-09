@@ -54,7 +54,7 @@ public class Reddit extends JavaPlugin {
 			public void run() {
 				nextData(null);
 			}
-		}, interval, interval);
+		}, 0L, interval);
 	}
 	
 	public void onDisable(){ 
@@ -84,14 +84,14 @@ public class Reddit extends JavaPlugin {
 							sender.sendMessage(INFO + ChatColor.YELLOW + "Topic set to: " + args[2] + ".");
 							saveConfig();
 							topic = getConfig().getString("Topic");
-							getData.run();
+							getData.start();
 							return true;
 						}
 					}
 				}
             }
             if(args[0].equalsIgnoreCase("get")){
-            	getData.run();
+            	getData.start();
     			return true;
             }
             if(args[0].equalsIgnoreCase("next")){
@@ -123,7 +123,7 @@ public class Reddit extends JavaPlugin {
     			try { 
     				//data = getData();
     				data = null;
-    				getData.run();
+    				getData.start();
     				stevec = 0;
     			} catch (Exception e) {
     				e.printStackTrace();

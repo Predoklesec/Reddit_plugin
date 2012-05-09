@@ -1,6 +1,6 @@
 name: Reddit
 main: com.gmail.predoklesec.Reddit
-version: 0.6
+version: 0.7
 commands:
    reddit:
       description: Prints avalible commands.

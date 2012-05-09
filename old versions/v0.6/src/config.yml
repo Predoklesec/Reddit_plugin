@@ -1,0 +1,6 @@
+#default configuration file for NewsPlugin -Viti
+Topic: minecraft
+Interval: 60
+MessageColor: 6
+LinkColor: 9
+NewsColor: 3

@@ -1,5 +1,7 @@
 package com.gmail.predoklesec;
 
+//import java.io.InputStream;
+//import java.net.URL;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,10 +14,11 @@ public class News {
 	String link2;
 	String tinylink;
 	
+	@SuppressWarnings("unchecked")
 	News(String t, String l, String d){
 		this.title = t;
 		this.link2 = l;
-		ArrayList<String> links = pullLinks(d);
+		ArrayList links = pullLinks(d);
 		if(links.size() > 3) this.link = links.get(3).toString();
 		else this.link = links.get(1).toString();
 		try {
@@ -33,6 +36,7 @@ public class News {
 	
 	public String toString() {
 		return ChatColor.RED + "[News] " + ChatColor.YELLOW + title;
+		//+ ChatColor.GRAY + " - " + ChatColor.BLUE + tinylink;
 	}
 	
 	public String getTiny(){
@@ -43,8 +47,9 @@ public class News {
 		return title;
 	}
 	
-	private ArrayList<String> pullLinks(String text) {
-		ArrayList<String> links = new ArrayList<String>();
+	@SuppressWarnings("unchecked")
+	private ArrayList pullLinks(String text) {
+		ArrayList links = new ArrayList();
 		String regex = "\\(?\\b(http://|www[.])[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]";
 		Pattern p = Pattern.compile(regex);
 		Matcher m = p.matcher(text);
